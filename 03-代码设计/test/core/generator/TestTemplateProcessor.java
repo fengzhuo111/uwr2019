@@ -1,7 +1,7 @@
 package core.generator;
 import core.common.*;
+import core.render.LiteralRender;
 import org.easymock.EasyMock;
-import org.easymock.IAnswer;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -9,8 +9,7 @@ import org.powermock.api.easymock.PowerMock;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
-
-import java.util.List;
+import java.util.*;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -31,8 +30,8 @@ public class TestTemplateProcessor implements DataSourceType{
 		tp.staticVarExtract("resource/newtemplatezzz.doc");
 		//以下进行检查点设置
 		DataSource ds = dsc.getConstDataSource();
-
 		List<DataHolder> dhs = ds.getVars();
+
 		DataHolder dh1 = ds.getDataHolder("sex");
 		assertNotNull("变量sex解析为空", dh1);
 		assertEquals("变量sex值获取错误","Female",dh1.getValue());
@@ -54,6 +53,7 @@ public class TestTemplateProcessor implements DataSourceType{
 	@Before
 	public void setUp() throws Exception {
 
+
 		//以下采用Mock对象的方式，做测试前的准备。
 		//与以上方法比较，好处是降低SUT（TemplateProcessor类）与DOC（DataSourceConfig类）之间的耦合性，解耦它们。
 		//从而使得定位缺陷变得容易。
@@ -64,7 +64,25 @@ public class TestTemplateProcessor implements DataSourceType{
 		//4. 录制该静态Mock的行为模式（针对的是静态方法）；
         //------------------------------------------------
         //以上流程请在这里实现：
-        //
+        dsc = EasyMock.createMock(DataSourceConfig.class);
+        ConstDataSource cds = new ConstDataSource();
+        HolderRender lr = LiteralRender.newInstance();
+        DataHolder dh1 = new VarHolder(cds,"sex", "Female",lr);
+		DataHolder dh2 = new VarHolder(cds,"readme", "5",lr);
+		DataHolder dh3 = new VarHolder(cds,"testexpr", "5.0",lr);
+		dh3.setExpr("${num}+${readme}");
+		ArrayList<DataHolder> list = new ArrayList<>();
+		list.add(dh1);
+		list.add(dh2);
+		list.add(dh3);
+		cds.setVars(list);
+//		ArrayList<DataSource> dss = new ArrayList<>();
+//		dss.add(cds);
+		EasyMock.expect(dsc.getConstDataSource()).andReturn(cds).anyTimes();  //anyTimes()可以解决99%的问题！
+		PowerMock.mockStatic(DataSourceConfig.class);
+		EasyMock.expect(DataSourceConfig.newInstance()).andReturn(dsc).anyTimes();
+		EasyMock.expect(dsc.getDataSource(EasyMock.anyString())).andReturn(cds).anyTimes();
+
         //
         // 这里写代码
         //

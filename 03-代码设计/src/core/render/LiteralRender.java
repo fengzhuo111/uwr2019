@@ -21,7 +21,7 @@ import core.generator.ReportGenerator;
  * 
  */
 public class LiteralRender implements HolderRender {
-	
+
 	private static LiteralRender literalRender = new LiteralRender();
 	private Logger logger = ReportGenerator.getLogger();
 	
